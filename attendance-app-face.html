@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker - Face Recognition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #video {
+            width: 100%;
+            display: block;
+            transform: scaleX(-1);
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .face-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .face-indicator {
+            position: absolute;
+            border: 3px solid #28a745;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+        }
+
+        .instruction-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .instruction-box h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .instruction-box p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .attendance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .attendance-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .attendance-card:hover:not(.checked-in) {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .attendance-card.checked-in {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+        }
+
+        .attendance-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .attendance-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .attendance-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .attendance-time {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-incomplete {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #667eea;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-details p {
+            margin-bottom: 3px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .user-details strong {
+            color: #333;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            margin-top: 10px;
+        }
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .history-date {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .history-checks {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .checkmark {
+            color: #28a745;
+            margin-right: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .face-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .face-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .face-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .face-item img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 8px;
+            border: 2px solid #667eea;
+            transform: scaleX(-1);
+        }
+
+        .face-item p {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .attendance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Onboarding/Login Selection Screen -->
+        <div id="selection-screen">
+            <div class="header">
+                <h1>👋 Welcome!</h1>
+                <p>Attendance Tracker</p>
+            </div>
+            <div class="content">
+                <div class="instruction-box">
+                    <h3>🎯 Getting Started</h3>
+                    <p>Choose how you'd like to register or login to the system.</p>
+                </div>
+                <button class="btn" id="new-user-btn">📝 New User - Register</button>
+                <button class="btn btn-secondary" id="existing-user-btn">🔐 Existing User - Login</button>
+            </div>
+        </div>
+
+        <!-- Registration Method Selection -->
+        <div id="registration-method-screen" class="hidden">
+            <div class="header">
+                <h1>📝 Registration Method</h1>
+                <p>Choose how you'd like to register</p>
+            </div>
+            <div class="content">
+                <div class="instruction-box">
+                    <h3>🎯 Select Registration Method</h3>
+                    <p>You can register using face recognition for quick access, or use traditional Employee ID for manual login.</p>
+                </div>
+                <button class="btn" id="register-with-face-btn">📸 Register with Face Recognition</button>
+                <button class="btn btn-secondary" id="register-with-id-btn">🆔 Register with Employee ID Only</button>
+                <button class="btn btn-secondary" id="back-from-reg-method">← Back</button>
+            </div>
+        </div>
+
+        <!-- Login Method Selection -->
+        <div id="login-method-screen" class="hidden">
+            <div class="header">
+                <h1>🔐 Login Method</h1>
+                <p>Choose how you'd like to login</p>
+            </div>
+            <div class="content">
+                <div class="instruction-box">
+                    <h3>🎯 Select Login Method</h3>
+                    <p>Login using face recognition for quick access, or use your Employee ID and password.</p>
+                </div>
+                <button class="btn" id="login-with-face-btn">📸 Login with Face Recognition</button>
+                <button class="btn btn-secondary" id="login-with-id-btn">🆔 Login with Employee ID</button>
+                <button class="btn btn-secondary" id="back-from-login-method">← Back</button>
+            </div>
+        </div>
+
+        <!-- ID/Password Login Screen -->
+        <div id="id-login-screen" class="hidden">
+            <div class="header">
+                <h1>🔐 Employee Login</h1>
+                <p>Enter your credentials</p>
+            </div>
+            <div class="content">
+                <div id="id-login-status"></div>
+                <form id="id-login-form">
+                    <div class="form-group">
+                        <label for="login-employee-id">Employee ID</label>
+                        <input type="text" id="login-employee-id" required placeholder="Enter your employee ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="Enter your password">
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                    <button type="button" class="btn btn-secondary" id="back-from-id-login">← Back</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Face Login Screen -->
+        <div id="face-login-screen" class="hidden">
+            <div class="header">
+                <h1>🔐 Face Login</h1>
+                <p>Look at the camera to login</p>
+            </div>
+            <div class="content">
+                <div id="login-status"></div>
+                <div class="video-container">
+                    <video id="login-video" autoplay playsinline></video>
+                    <canvas id="login-canvas"></canvas>
+                    <div class="face-overlay" id="login-overlay"></div>
+                </div>
+                <div class="instruction-box">
+                    <h3>📋 Instructions</h3>
+                    <p>Position your face in the center of the camera. The system will automatically detect and verify your identity.</p>
+                </div>
+                <button class="btn" id="capture-login-btn">Capture & Login</button>
+                <button class="btn btn-secondary" id="back-to-selection-btn">← Back</button>
+            </div>
+        </div>
+
+        <!-- Onboarding Screen -->
+        <div id="onboarding-screen" class="hidden">
+            <div class="header">
+                <h1>📝 Register</h1>
+                <p>Let's get you set up</p>
+            </div>
+            <div class="content">
+                <div id="onboarding-step-1">
+                    <form id="onboarding-form">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" required placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-id">Employee ID</label>
+                            <input type="text" id="employee-id" required placeholder="Enter your employee ID">
+                        </div>
+                        <div class="form-group" id="password-field" style="display: none;">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" placeholder="Create a password (min 6 characters)" minlength="6">
+                        </div>
+                        <div class="form-group" id="confirm-password-field" style="display: none;">
+                            <label for="confirm-password">Confirm Password</label>
+                            <input type="password" id="confirm-password" placeholder="Re-enter your password" minlength="6">
+                        </div>
+                        <button type="submit" class="btn" id="onboarding-submit-btn">Next - Capture Face →</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-onboarding">← Back</button>
+                    </form>
+                </div>
+
+                <div id="onboarding-step-2" class="hidden">
+                    <div id="face-status"></div>
+                    <div class="video-container">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas"></canvas>
+                        <div class="face-overlay" id="face-overlay"></div>
+                    </div>
+                    <div class="instruction-box">
+                        <h3>📸 Face Capture Instructions</h3>
+                        <p>Position your face in the center of the frame. Make sure you're in a well-lit area and looking directly at the camera.</p>
+                    </div>
+                    <button class="btn btn-success" id="capture-face-btn">📸 Capture Face</button>
+                    <button class="btn btn-secondary" id="retake-btn" style="display: none;">🔄 Retake Photo</button>
+                    <button class="btn" id="complete-registration-btn" style="display: none;">✓ Complete Registration</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Screen -->
+        <div id="attendance-screen" class="hidden">
+            <div class="header">
+                <h1>Attendance Tracker</h1>
+                <p id="current-date"></p>
+            </div>
+            <div class="content">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar-container"></div>
+                    <div class="user-details">
+                        <p><strong>Name:</strong> <span id="display-name"></span></p>
+                        <p><strong>Employee ID:</strong> <span id="display-id"></span></p>
+                    </div>
+                </div>
+
+                <div id="status-container"></div>
+
+                <div class="attendance-grid">
+                    <div class="attendance-card" data-session="morning">
+                        <div class="attendance-icon">🌅</div>
+                        <div class="attendance-title">Morning</div>
+                        <div class="attendance-time">6:00 AM - 11:59 AM</div>
+                    </div>
+                    <div class="attendance-card" data-session="lunch">
+                        <div class="attendance-icon">🍽️</div>
+                        <div class="attendance-title">Lunch</div>
+                        <div class="attendance-time">12:00 PM - 1:59 PM</div>
+                    </div>
+                    <div class="attendance-card" data-session="post">
+                        <div class="attendance-icon">☀️</div>
+                        <div class="attendance-title">Post-Lunch</div>
+                        <div class="attendance-time">2:00 PM - 5:59 PM</div>
+                    </div>
+                    <div class="attendance-card" data-session="evening">
+                        <div class="attendance-icon">🌆</div>
+                        <div class="attendance-title">Evening</div>
+                        <div class="attendance-time">6:00 PM - 11:59 PM</div>
+                    </div>
+                </div>
+
+                <div class="history">
+                    <div class="history-title">Attendance History</div>
+                    <div id="history-container"></div>
+                </div>
+
+                <button class="btn logout-btn" id="logout-btn">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentUser = null;
+        let attendanceData = {};
+        let videoStream = null;
+        let capturedFaceData = null;
+        let registeredUsers = [];
+        let registrationMode = 'face'; // 'face' or 'id'
+        let cameraPermissionGranted = false;
+
+        // Initialize app
+        function init() {
+            loadAllUsers();
+            loadUserData();
+            if (currentUser) {
+                showAttendanceScreen();
+            } else {
+                showSelectionScreen();
+            }
+        }
+
+        // Load all registered users
+        function loadAllUsers() {
+            const usersData = localStorage.getItem('registeredUsers');
+            if (usersData) {
+                registeredUsers = JSON.parse(usersData);
+            }
+        }
+
+        // Save all users
+        function saveAllUsers() {
+            localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+        }
+
+        // Load user data from localStorage
+        function loadUserData() {
+            const userData = localStorage.getItem('attendanceUser');
+            const storedAttendance = localStorage.getItem('attendanceData');
+            
+            if (userData) {
+                currentUser = JSON.parse(userData);
+            }
+            
+            if (storedAttendance) {
+                attendanceData = JSON.parse(storedAttendance);
+            }
+        }
+
+        // Save user data to localStorage
+        function saveUserData() {
+            localStorage.setItem('attendanceUser', JSON.stringify(currentUser));
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+        }
+
+        // Get today's date key
+        function getTodayKey() {
+            const today = new Date();
+            return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        }
+
+        // Get current session based on time
+        function getCurrentSession() {
+            const hour = new Date().getHours();
+            
+            if (hour >= 6 && hour < 12) return 'morning';
+            if (hour >= 12 && hour < 14) return 'lunch';
+            if (hour >= 14 && hour < 18) return 'post';
+            if (hour >= 18 || hour < 6) return 'evening';
+        }
+
+        // Check if session is available
+        function isSessionAvailable(session) {
+            const currentSession = getCurrentSession();
+            const sessions = ['morning', 'lunch', 'post', 'evening'];
+            const currentIndex = sessions.indexOf(currentSession);
+            const sessionIndex = sessions.indexOf(session);
+            
+            return sessionIndex <= currentIndex;
+        }
+
+        // Format date for display
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        // Show selection screen
+        function showSelectionScreen() {
+            hideAllScreens();
+            document.getElementById('selection-screen').classList.remove('hidden');
+        }
+
+        // Show registration method screen
+        function showRegistrationMethodScreen() {
+            hideAllScreens();
+            document.getElementById('registration-method-screen').classList.remove('hidden');
+        }
+
+        // Show login method screen
+        function showLoginMethodScreen() {
+            hideAllScreens();
+            document.getElementById('login-method-screen').classList.remove('hidden');
+        }
+
+        // Show ID login screen
+        function showIdLoginScreen() {
+            hideAllScreens();
+            document.getElementById('id-login-screen').classList.remove('hidden');
+        }
+
+        // Show face login screen
+        async function showFaceLoginScreen() {
+            hideAllScreens();
+            document.getElementById('face-login-screen').classList.remove('hidden');
+            await startCamera('login-video');
+        }
+
+        // Show onboarding screen
+        function showOnboardingScreen() {
+            hideAllScreens();
+            document.getElementById('onboarding-screen').classList.remove('hidden');
+            document.getElementById('onboarding-step-1').classList.remove('hidden');
+            document.getElementById('onboarding-step-2').classList.add('hidden');
+        }
+
+        // Show attendance screen
+        function showAttendanceScreen() {
+            hideAllScreens();
+            stopCamera();
+            document.getElementById('attendance-screen').classList.remove('hidden');
+            
+            // Update user info
+            document.getElementById('display-name').textContent = currentUser.name;
+            document.getElementById('display-id').textContent = currentUser.employeeId;
+            document.getElementById('current-date').textContent = formatDate(getTodayKey());
+            
+            // Display user face
+            if (currentUser.faceData) {
+                document.getElementById('user-avatar-container').innerHTML = 
+                    `<img src="${currentUser.faceData}" alt="User Avatar">`;
+            }
+            
+            // Update attendance status
+            updateAttendanceStatus();
+            updateHistory();
+        }
+
+        // Hide all screens
+        function hideAllScreens() {
+            document.getElementById('selection-screen').classList.add('hidden');
+            document.getElementById('registration-method-screen').classList.add('hidden');
+            document.getElementById('login-method-screen').classList.add('hidden');
+            document.getElementById('id-login-screen').classList.add('hidden');
+            document.getElementById('face-login-screen').classList.add('hidden');
+            document.getElementById('onboarding-screen').classList.add('hidden');
+            document.getElementById('attendance-screen').classList.add('hidden');
+        }
+
+        // Request camera permission
+        async function requestCameraPermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user' } 
+                });
+                // Stop the stream immediately after permission is granted
+                stream.getTracks().forEach(track => track.stop());
+                cameraPermissionGranted = true;
+                return true;
+            } catch (error) {
+                console.error('Camera permission denied:', error);
+                cameraPermissionGranted = false;
+                return false;
+            }
+        }
+
+        // Start camera
+        async function startCamera(videoElementId) {
+            try {
+                const video = document.getElementById(videoElementId);
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'user',
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    } 
+                });
+                video.srcObject = videoStream;
+                cameraPermissionGranted = true;
+                return true;
+            } catch (error) {
+                console.error('Camera access error:', error);
+                alert('Unable to access camera. Please grant camera permissions and try again.');
+                cameraPermissionGranted = false;
+                return false;
+            }
+        }
+
+        // Stop camera
+        function stopCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+        }
+
+        // Capture face from video
+        function captureFace(videoId, canvasId) {
+            const video = document.getElementById(videoId);
+            const canvas = document.getElementById(canvasId);
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Flip the image horizontally to match the mirrored video
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            return canvas.toDataURL('image/jpeg', 0.8);
+        }
+
+        // Simple face matching (comparing image data)
+        // In production, use a proper face recognition library
+        function compareFaces(face1, face2) {
+            // This is a simplified comparison
+            // In production, use face-api.js or similar library
+            return face1 === face2; // Exact match for demo
+            
+            // For real implementation, you would:
+            // 1. Extract face embeddings using face-api.js or tensorflow.js
+            // 2. Calculate distance between embeddings
+            // 3. Return match if distance is below threshold
+        }
+
+        // Find matching user by face
+        function findUserByFace(faceData) {
+            // In this simplified version, we'll use a basic comparison
+            // In production, use proper face recognition algorithms
+            
+            for (let user of registeredUsers) {
+                if (user.faceData === faceData) {
+                    return user;
+                }
+            }
+            return null;
+        }
+
+        // Update attendance status
+        function updateAttendanceStatus() {
+            const todayKey = getTodayKey();
+            const todayAttendance = attendanceData[todayKey] || {};
+            
+            // Update cards
+            document.querySelectorAll('.attendance-card').forEach(card => {
+                const session = card.dataset.session;
+                const isCheckedIn = todayAttendance[session];
+                const isAvailable = isSessionAvailable(session);
+                
+                card.classList.remove('checked-in', 'disabled');
+                
+                if (isCheckedIn) {
+                    card.classList.add('checked-in');
+                } else if (!isAvailable) {
+                    card.classList.add('disabled');
+                }
+            });
+            
+            // Update status badge
+            const completedCount = Object.keys(todayAttendance).length;
+            const statusContainer = document.getElementById('status-container');
+            
+            if (completedCount === 4) {
+                statusContainer.innerHTML = `
+                    <div class="status-badge status-complete">
+                        ✓ Full Attendance Completed (${completedCount}/4)
+                    </div>
+                `;
+            } else {
+                statusContainer.innerHTML = `
+                    <div class="status-badge status-incomplete">
+                        Check-ins: ${completedCount}/4
+                    </div>
+                `;
+            }
+        }
+
+        // Update history
+        function updateHistory() {
+            const historyContainer = document.getElementById('history-container');
+            const dates = Object.keys(attendanceData).sort().reverse().slice(0, 7);
+            
+            if (dates.length === 0) {
+                historyContainer.innerHTML = '<p style="color: #999; text-align: center;">No attendance history yet</p>';
+                return;
+            }
+            
+            historyContainer.innerHTML = dates.map(date => {
+                const sessions = attendanceData[date];
+                const sessionCount = Object.keys(sessions).length;
+                const isComplete = sessionCount === 4;
+                
+                const sessionNames = {
+                    morning: 'Morning',
+                    lunch: 'Lunch',
+                    post: 'Post-Lunch',
+                    evening: 'Evening'
+                };
+                
+                const checkedSessions = Object.keys(sessions)
+                    .map(s => sessionNames[s])
+                    .join(', ');
+                
+                return `
+                    <div class="history-item">
+                        <div class="history-date">
+                            ${formatDate(date)}
+                            ${isComplete ? '<span class="checkmark">✓</span>' : ''}
+                        </div>
+                        <div class="history-checks">
+                            ${sessionCount}/4 check-ins: ${checkedSessions || 'None'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Event Listeners
+        document.getElementById('new-user-btn').addEventListener('click', () => {
+            showRegistrationMethodScreen();
+        });
+
+        document.getElementById('existing-user-btn').addEventListener('click', () => {
+            if (registeredUsers.length === 0) {
+                alert('No registered users found. Please register first.');
+                return;
+            }
+            showLoginMethodScreen();
+        });
+
+        // Registration method selection
+        document.getElementById('register-with-face-btn').addEventListener('click', async () => {
+            registrationMode = 'face';
+            
+            // Request camera permission
+            const hasPermission = await requestCameraPermission();
+            if (hasPermission) {
+                showOnboardingScreen();
+            } else {
+                alert('Camera permission is required for face registration. Please try registering with Employee ID instead.');
+                showRegistrationMethodScreen();
+            }
+        });
+
+        document.getElementById('register-with-id-btn').addEventListener('click', () => {
+            registrationMode = 'id';
+            showOnboardingScreen();
+            
+            // Show password fields for ID registration
+            document.getElementById('password-field').style.display = 'block';
+            document.getElementById('confirm-password-field').style.display = 'block';
+            document.getElementById('password').required = true;
+            document.getElementById('confirm-password').required = true;
+            document.getElementById('onboarding-submit-btn').textContent = 'Complete Registration';
+        });
+
+        // Login method selection
+        document.getElementById('login-with-face-btn').addEventListener('click', async () => {
+            // Check if any users have face data
+            const hasFaceUsers = registeredUsers.some(u => u.faceData);
+            if (!hasFaceUsers) {
+                alert('No users registered with face recognition. Please use Employee ID login.');
+                return;
+            }
+            
+            // Request camera permission
+            const hasPermission = await requestCameraPermission();
+            if (hasPermission) {
+                showFaceLoginScreen();
+            } else {
+                alert('Camera permission is required for face login. Please use Employee ID login instead.');
+                showLoginMethodScreen();
+            }
+        });
+
+        document.getElementById('login-with-id-btn').addEventListener('click', () => {
+            showIdLoginScreen();
+        });
+
+        // Back buttons
+        document.getElementById('back-from-reg-method').addEventListener('click', () => {
+            showSelectionScreen();
+        });
+
+        document.getElementById('back-from-login-method').addEventListener('click', () => {
+            showSelectionScreen();
+        });
+
+        document.getElementById('back-from-id-login').addEventListener('click', () => {
+            showLoginMethodScreen();
+        });
+
+        document.getElementById('back-to-selection-btn').addEventListener('click', () => {
+            stopCamera();
+            showLoginMethodScreen();
+        });
+
+        document.getElementById('cancel-onboarding').addEventListener('click', () => {
+            stopCamera();
+            // Reset password fields
+            document.getElementById('password-field').style.display = 'none';
+            document.getElementById('confirm-password-field').style.display = 'none';
+            document.getElementById('password').required = false;
+            document.getElementById('confirm-password').required = false;
+            showRegistrationMethodScreen();
+        });
+
+        // Handle onboarding form submission
+        document.getElementById('onboarding-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Store form data temporarily
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                employeeId: document.getElementById('employee-id').value
+            };
+            
+            // Check if employee ID already exists
+            if (registeredUsers.some(u => u.employeeId === formData.employeeId)) {
+                alert('This Employee ID is already registered!');
+                return;
+            }
+            
+            if (registrationMode === 'id') {
+                // ID-based registration
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                
+                if (password !== confirmPassword) {
+                    alert('Passwords do not match!');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    alert('Password must be at least 6 characters long!');
+                    return;
+                }
+                
+                // Create user with password (hashed in production)
+                currentUser = {
+                    ...formData,
+                    password: btoa(password), // Basic encoding (use proper hashing in production)
+                    registeredAt: new Date().toISOString(),
+                    loginMethod: 'id'
+                };
+                
+                // Add to registered users
+                registeredUsers.push(currentUser);
+                saveAllUsers();
+                saveUserData();
+                
+                alert('✓ Registration completed successfully!');
+                
+                // Reset form
+                document.getElementById('password-field').style.display = 'none';
+                document.getElementById('confirm-password-field').style.display = 'none';
+                document.getElementById('password').required = false;
+                document.getElementById('confirm-password').required = false;
+                
+                showAttendanceScreen();
+            } else {
+                // Face-based registration
+                window.tempUserData = formData;
+                
+                // Show face capture step
+                document.getElementById('onboarding-step-1').classList.add('hidden');
+                document.getElementById('onboarding-step-2').classList.remove('hidden');
+                
+                // Start camera
+                await startCamera('video');
+            }
+        });
+
+        // Capture face button
+        document.getElementById('capture-face-btn').addEventListener('click', () => {
+            const faceData = captureFace('video', 'canvas');
+            capturedFaceData = faceData;
+            
+            // Show preview
+            document.getElementById('face-status').innerHTML = `
+                <div class="status-message status-success">
+                    ✓ Face captured successfully!
+                </div>
+            `;
+            
+            // Show complete button
+            document.getElementById('capture-face-btn').style.display = 'none';
+            document.getElementById('retake-btn').style.display = 'block';
+            document.getElementById('complete-registration-btn').style.display = 'block';
+        });
+
+        // Retake photo button
+        document.getElementById('retake-btn').addEventListener('click', () => {
+            capturedFaceData = null;
+            document.getElementById('face-status').innerHTML = '';
+            document.getElementById('capture-face-btn').style.display = 'block';
+            document.getElementById('retake-btn').style.display = 'none';
+            document.getElementById('complete-registration-btn').style.display = 'none';
+        });
+
+        // Complete registration
+        document.getElementById('complete-registration-btn').addEventListener('click', () => {
+            if (!capturedFaceData) {
+                alert('Please capture your face first!');
+                return;
+            }
+            
+            // Create user object
+            currentUser = {
+                ...window.tempUserData,
+                faceData: capturedFaceData,
+                registeredAt: new Date().toISOString(),
+                loginMethod: 'face'
+            };
+            
+            // Add to registered users
+            registeredUsers.push(currentUser);
+            saveAllUsers();
+            
+            // Save as current user
+            saveUserData();
+            
+            // Clean up
+            delete window.tempUserData;
+            capturedFaceData = null;
+            
+            // Show success and go to attendance
+            alert('✓ Registration completed successfully!');
+            showAttendanceScreen();
+        });
+
+        // Face login capture
+        document.getElementById('capture-login-btn').addEventListener('click', () => {
+            const loginStatus = document.getElementById('login-status');
+            loginStatus.innerHTML = `
+                <div class="status-message status-info">
+                    🔍 Verifying your face...
+                </div>
+            `;
+            
+            const faceData = captureFace('login-video', 'login-canvas');
+            
+            // Try to find matching user
+            const matchedUser = findUserByFace(faceData);
+            
+            if (matchedUser) {
+                loginStatus.innerHTML = `
+                    <div class="status-message status-success">
+                        ✓ Login successful! Welcome back, ${matchedUser.name}
+                    </div>
+                `;
+                
+                // Set current user
+                currentUser = matchedUser;
+                
+                // Load their attendance data
+                const userAttendanceKey = `attendance_${matchedUser.employeeId}`;
+                const storedAttendance = localStorage.getItem(userAttendanceKey);
+                if (storedAttendance) {
+                    attendanceData = JSON.parse(storedAttendance);
+                } else {
+                    attendanceData = {};
+                }
+                
+                saveUserData();
+                
+                setTimeout(() => {
+                    showAttendanceScreen();
+                }, 1500);
+            } else {
+                loginStatus.innerHTML = `
+                    <div class="status-message status-error">
+                        ✗ Face not recognized. Please try again or register as a new user.
+                    </div>
+                `;
+            }
+        });
+
+        // ID/Password login handler
+        document.getElementById('id-login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const employeeId = document.getElementById('login-employee-id').value;
+            const password = document.getElementById('login-password').value;
+            const loginStatus = document.getElementById('id-login-status');
+            
+            // Find user by employee ID
+            const user = registeredUsers.find(u => u.employeeId === employeeId);
+            
+            if (!user) {
+                loginStatus.innerHTML = `
+                    <div class="status-message status-error">
+                        ✗ Employee ID not found. Please check your ID or register.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Check if user has a password (ID-based registration)
+            if (!user.password) {
+                loginStatus.innerHTML = `
+                    <div class="status-message status-error">
+                        ✗ This account was registered with face recognition. Please use face login.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Verify password (basic decoding - use proper verification in production)
+            if (atob(user.password) !== password) {
+                loginStatus.innerHTML = `
+                    <div class="status-message status-error">
+                        ✗ Incorrect password. Please try again.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Successful login
+            loginStatus.innerHTML = `
+                <div class="status-message status-success">
+                    ✓ Login successful! Welcome back, ${user.name}
+                </div>
+            `;
+            
+            currentUser = user;
+            
+            // Load their attendance data
+            const userAttendanceKey = `attendance_${user.employeeId}`;
+            const storedAttendance = localStorage.getItem(userAttendanceKey);
+            if (storedAttendance) {
+                attendanceData = JSON.parse(storedAttendance);
+            } else {
+                attendanceData = {};
+            }
+            
+            saveUserData();
+            
+            setTimeout(() => {
+                showAttendanceScreen();
+            }, 1000);
+        });
+
+        // Handle attendance check-in
+        document.querySelectorAll('.attendance-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const session = card.dataset.session;
+                const todayKey = getTodayKey();
+                
+                // Check if already checked in
+                if (!attendanceData[todayKey]) {
+                    attendanceData[todayKey] = {};
+                }
+                
+                if (attendanceData[todayKey][session]) {
+                    alert('You have already checked in for this session!');
+                    return;
+                }
+                
+                // Check if session is available
+                if (!isSessionAvailable(session)) {
+                    alert('This session is not available yet!');
+                    return;
+                }
+                
+                // Record check-in
+                attendanceData[todayKey][session] = new Date().toISOString();
+                
+                // Save to user-specific attendance
+                const userAttendanceKey = `attendance_${currentUser.employeeId}`;
+                localStorage.setItem(userAttendanceKey, JSON.stringify(attendanceData));
+                
+                saveUserData();
+                updateAttendanceStatus();
+                updateHistory();
+                
+                // Show success message
+                const sessionNames = {
+                    morning: 'Morning',
+                    lunch: 'Lunch',
+                    post: 'Post-Lunch',
+                    evening: 'Evening'
+                };
+                
+                alert(`✓ ${sessionNames[session]} check-in recorded!`);
+            });
+        });
+
+        // Handle logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                // Save current attendance before logout
+                if (currentUser) {
+                    const userAttendanceKey = `attendance_${currentUser.employeeId}`;
+                    localStorage.setItem(userAttendanceKey, JSON.stringify(attendanceData));
+                }
+                
+                // Clear current session
+                localStorage.removeItem('attendanceUser');
+                localStorage.removeItem('attendanceData');
+                currentUser = null;
+                attendanceData = {};
+                showSelectionScreen();
+            }
+        });
+
+        // Initialize app on load
+        init();
+
+        // Clean up camera on page unload
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance System - Backup Utility</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .data-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .data-item {
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .data-key {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-size {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💾 Backup Utility</h1>
+            <p>Attendance System Data Management</p>
+        </div>
+        <div class="content">
+            <div class="info-box">
+                <h3>📋 What Gets Backed Up?</h3>
+                <p>This utility backs up all user registrations (including face data) and attendance records from your browser's localStorage.</p>
+            </div>
+
+            <div id="status-container"></div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="user-count">0</div>
+                    <div class="stat-label">Registered Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="record-count">0</div>
+                    <div class="stat-label">Attendance Records</div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 10px; color: #333;">📦 Stored Data:</h3>
+            <div class="data-list" id="data-list"></div>
+
+            <button class="btn btn-success" id="backup-btn">
+                <span>💾</span> Backup All Data
+            </button>
+
+            <button class="btn btn-warning" id="restore-btn">
+                <span>📥</span> Restore from Backup
+            </button>
+
+            <button class="btn btn-secondary" id="view-data-btn">
+                <span>👁️</span> View Data (Console)
+            </button>
+
+            <button class="btn btn-danger" id="clear-btn">
+                <span>🗑️</span> Clear All Data
+            </button>
+
+            <input type="file" id="restore-file" accept=".json">
+
+            <div class="info-box" style="margin-top: 20px;">
+                <h3>⚠️ Important Notes:</h3>
+                <p>• Keep backup files secure (they contain face images and personal data)<br>
+                • Restore will overwrite existing data<br>
+                • Backup files are in JSON format<br>
+                • Store backups in a safe location</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load and display current data
+        function loadDataInfo() {
+            const registeredUsers = localStorage.getItem('registeredUsers');
+            const userCount = registeredUsers ? JSON.parse(registeredUsers).length : 0;
+            
+            let recordCount = 0;
+            const dataItems = [];
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                const size = new Blob([value]).size;
+                
+                if (key === 'registeredUsers' || key.startsWith('attendance_')) {
+                    dataItems.push({
+                        key: key,
+                        size: formatBytes(size)
+                    });
+                    
+                    if (key.startsWith('attendance_')) {
+                        recordCount++;
+                    }
+                }
+            }
+            
+            document.getElementById('user-count').textContent = userCount;
+            document.getElementById('record-count').textContent = recordCount;
+            
+            const dataList = document.getElementById('data-list');
+            if (dataItems.length === 0) {
+                dataList.innerHTML = '<p style="text-align: center; color: #999;">No data found</p>';
+            } else {
+                dataList.innerHTML = dataItems.map(item => `
+                    <div class="data-item">
+                        <span class="data-key">${item.key}</span>
+                        <span class="data-size">${item.size}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Format bytes to human readable
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            container.innerHTML = `
+                <div class="status-message status-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Backup all data
+        function backupAllData() {
+            const backup = {
+                timestamp: new Date().toISOString(),
+                version: '1.0',
+                appName: 'Attendance Tracker',
+                data: {}
+            };
+            
+            let totalSize = 0;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                
+                if (key === 'registeredUsers' || key.startsWith('attendance_')) {
+                    const value = localStorage.getItem(key);
+                    backup.data[key] = value;
+                    totalSize += new Blob([value]).size;
+                }
+            }
+            
+            const userCount = backup.data.registeredUsers ? 
+                JSON.parse(backup.data.registeredUsers).length : 0;
+            const recordCount = Object.keys(backup.data).filter(k => k.startsWith('attendance_')).length;
+            
+            const jsonData = JSON.stringify(backup, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const filename = `attendance-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus(
+                `✓ Backup downloaded: ${filename}<br>` +
+                `Users: ${userCount} | Records: ${recordCount} | Size: ${formatBytes(blob.size)}`,
+                'success'
+            );
+        }
+
+        // Restore from backup
+        function restoreFromBackup(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const backup = JSON.parse(e.target.result);
+                    
+                    if (!backup.data || !backup.timestamp) {
+                        showStatus('✗ Invalid backup file format!', 'error');
+                        return;
+                    }
+                    
+                    const userCount = backup.data.registeredUsers ? 
+                        JSON.parse(backup.data.registeredUsers).length : 0;
+                    const recordCount = Object.keys(backup.data).filter(k => k.startsWith('attendance_')).length;
+                    
+                    const confirmed = confirm(
+                        `Restore Backup?\n\n` +
+                        `Backup Date: ${new Date(backup.timestamp).toLocaleString()}\n` +
+                        `Users: ${userCount}\n` +
+                        `Attendance Records: ${recordCount}\n\n` +
+                        `⚠️ WARNING: This will overwrite existing data!\n` +
+                        `Continue?`
+                    );
+                    
+                    if (!confirmed) {
+                        return;
+                    }
+                    
+                    Object.keys(backup.data).forEach(key => {
+                        localStorage.setItem(key, backup.data[key]);
+                    });
+                    
+                    showStatus(
+                        `✓ Data restored successfully!<br>` +
+                        `Users: ${userCount} | Records: ${recordCount}`,
+                        'success'
+                    );
+                    
+                    loadDataInfo();
+                    
+                } catch (error) {
+                    console.error('Restore error:', error);
+                    showStatus('✗ Error restoring backup: ' + error.message, 'error');
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // View data in console
+        function viewDataInConsole() {
+            console.clear();
+            console.log('=== ATTENDANCE SYSTEM DATA ===\n');
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                
+                if (key === 'registeredUsers' || key.startsWith('attendance_')) {
+                    console.log(`\n--- ${key} ---`);
+                    const data = JSON.parse(localStorage.getItem(key));
+                    console.log(data);
+                }
+            }
+            
+            console.log('\n=== END OF DATA ===');
+            showStatus('✓ Data logged to browser console (Press F12 to view)', 'success');
+        }
+
+        // Clear all data
+        function clearAllData() {
+            const confirmed = confirm(
+                '⚠️ WARNING: Delete All Data?\n\n' +
+                'This will permanently delete:\n' +
+                '• All user registrations\n' +
+                '• All face data\n' +
+                '• All attendance records\n\n' +
+                'This action CANNOT be undone!\n\n' +
+                'Are you absolutely sure?'
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+            
+            const doubleCheck = prompt('Type "DELETE" to confirm:');
+            
+            if (doubleCheck === 'DELETE') {
+                const keysToDelete = [];
+                
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key === 'registeredUsers' || key.startsWith('attendance_') || key === 'attendanceUser' || key === 'attendanceData') {
+                        keysToDelete.push(key);
+                    }
+                }
+                
+                keysToDelete.forEach(key => localStorage.removeItem(key));
+                
+                showStatus(`✓ All data deleted (${keysToDelete.length} items removed)`, 'success');
+                loadDataInfo();
+            } else {
+                showStatus('Deletion cancelled', 'info');
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('backup-btn').addEventListener('click', backupAllData);
+        
+        document.getElementById('restore-btn').addEventListener('click', () => {
+            document.getElementById('restore-file').click();
+        });
+        
+        document.getElementById('restore-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                restoreFromBackup(file);
+                e.target.value = '';
+            }
+        });
+        
+        document.getElementById('view-data-btn').addEventListener('click', viewDataInConsole);
+        
+        document.getElementById('clear-btn').addEventListener('click', clearAllData);
+
+        // Initialize
+        loadDataInfo();
+    </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .action-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .action-card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        .action-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+
+        .action-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .action-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .info-section {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .info-section h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .info-section ul {
+            margin-left: 20px;
+        }
+
+        .info-section li {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 13px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Attendance Tracker System</h1>
+            <p>Modern attendance management with face recognition</p>
+        </div>
+
+        <div class="content">
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📸</div>
+                    <div class="feature-title">Face Recognition</div>
+                    <div class="feature-desc">Quick login with facial recognition technology</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <div class="feature-title">Secure Login</div>
+                    <div class="feature-desc">ID & password authentication option</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <div class="feature-title">4-Session Tracking</div>
+                    <div class="feature-desc">Morning, Lunch, Post-Lunch, Evening</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Admin Dashboard</div>
+                    <div class="feature-desc">Comprehensive reporting & analytics</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>🎯 System Features</h3>
+                <ul>
+                    <li>Dual authentication: Face recognition or Employee ID</li>
+                    <li>4 daily check-in sessions with time-based availability</li>
+                    <li>Individual attendance history tracking</li>
+                    <li>Admin dashboard with daily & monthly reports</li>
+                    <li>Data backup & restore functionality</li>
+                    <li>Responsive design for mobile and desktop</li>
+                    <li>Browser-based storage (no server required)</li>
+                </ul>
+            </div>
+
+            <div class="action-grid">
+                <div class="action-card">
+                    <div class="action-icon">👤</div>
+                    <div class="action-title">Employee Portal</div>
+                    <div class="action-desc">Register, login, and mark your daily attendance</div>
+                    <a href="attendance-app-face.html" class="btn">Enter Portal</a>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">👔</div>
+                    <div class="action-title">Admin Dashboard</div>
+                    <div class="action-desc">View reports, manage data, and export records</div>
+                    <a href="admin-dashboard.html" class="btn btn-secondary">Admin Login</a>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">💾</div>
+                    <div class="action-title">Backup Utility</div>
+                    <div class="action-desc">Backup and restore your attendance data</div>
+                    <a href="backup-utility.html" class="btn btn-secondary">Manage Data</a>
+                </div>
+            </div>
+
+            <div class="info-section" style="margin-top: 40px;">
+                <h3>🔒 Privacy & Security</h3>
+                <ul>
+                    <li>All data stored locally in your browser (localStorage)</li>
+                    <li>Face images never leave your device</li>
+                    <li>No external servers or databases</li>
+                    <li>Export and backup your data anytime</li>
+                    <li>Complete control over your information</li>
+                </ul>
+            </div>
+
+            <div class="info-section">
+                <h3>📝 Quick Start Guide</h3>
+                <ul>
+                    <li><strong>Employees:</strong> Register via Employee Portal with face or ID, then mark attendance 4 times daily</li>
+                    <li><strong>Admins:</strong> Login to dashboard (default: admin/admin123) to view reports and export data</li>
+                    <li><strong>Backup:</strong> Use Backup Utility to save your data regularly</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2025 Attendance Tracker System | Browser-based Attendance Management
+        </div>
+    </div>
+</body>
+</html>
