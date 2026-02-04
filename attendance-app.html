@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .attendance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .attendance-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .attendance-card:hover:not(.checked-in) {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .attendance-card.checked-in {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+        }
+
+        .attendance-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .attendance-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .attendance-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .attendance-time {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-incomplete {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .user-info p {
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .user-info strong {
+            color: #333;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            margin-top: 10px;
+        }
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .history-date {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .history-checks {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .checkmark {
+            color: #28a745;
+            margin-right: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .attendance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Onboarding Screen -->
+        <div id="onboarding-screen">
+            <div class="header">
+                <h1>Welcome!</h1>
+                <p>Let's get you set up</p>
+            </div>
+            <div class="content">
+                <form id="onboarding-form">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-id">Employee ID</label>
+                        <input type="text" id="employee-id" required placeholder="Enter your employee ID">
+                    </div>
+                    <button type="submit" class="btn">Get Started</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Attendance Screen -->
+        <div id="attendance-screen" class="hidden">
+            <div class="header">
+                <h1>Attendance Tracker</h1>
+                <p id="current-date"></p>
+            </div>
+            <div class="content">
+                <div class="user-info">
+                    <p><strong>Name:</strong> <span id="display-name"></span></p>
+                    <p><strong>Employee ID:</strong> <span id="display-id"></span></p>
+                </div>
+
+                <div id="status-container"></div>
+
+                <div class="attendance-grid">
+                    <div class="attendance-card" data-session="morning">
+                        <div class="attendance-icon">🌅</div>
+                        <div class="attendance-title">Morning</div>
+                        <div class="attendance-time">6:00 AM - 11:59 AM</div>
+                    </div>
+                    <div class="attendance-card" data-session="lunch">
+                        <div class="attendance-icon">🍽️</div>
+                        <div class="attendance-title">Lunch</div>
+                        <div class="attendance-time">12:00 PM - 1:59 PM</div>
+                    </div>
+                    <div class="attendance-card" data-session="post">
+                        <div class="attendance-icon">☀️</div>
+                        <div class="attendance-title">Post-Lunch</div>
+                        <div class="attendance-time">2:00 PM - 5:59 PM</div>
+                    </div>
+                    <div class="attendance-card" data-session="evening">
+                        <div class="attendance-icon">🌆</div>
+                        <div class="attendance-title">Evening</div>
+                        <div class="attendance-time">6:00 PM - 11:59 PM</div>
+                    </div>
+                </div>
+
+                <div class="history">
+                    <div class="history-title">Attendance History</div>
+                    <div id="history-container"></div>
+                </div>
+
+                <button class="btn logout-btn" id="logout-btn">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentUser = null;
+        let attendanceData = {};
+
+        // Initialize app
+        function init() {
+            loadUserData();
+            if (currentUser) {
+                showAttendanceScreen();
+            } else {
+                showOnboardingScreen();
+            }
+        }
+
+        // Load user data from localStorage
+        function loadUserData() {
+            const userData = localStorage.getItem('attendanceUser');
+            const storedAttendance = localStorage.getItem('attendanceData');
+            
+            if (userData) {
+                currentUser = JSON.parse(userData);
+            }
+            
+            if (storedAttendance) {
+                attendanceData = JSON.parse(storedAttendance);
+            }
+        }
+
+        // Save user data to localStorage
+        function saveUserData() {
+            localStorage.setItem('attendanceUser', JSON.stringify(currentUser));
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+        }
+
+        // Get today's date key
+        function getTodayKey() {
+            const today = new Date();
+            return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        }
+
+        // Get current session based on time
+        function getCurrentSession() {
+            const hour = new Date().getHours();
+            
+            if (hour >= 6 && hour < 12) return 'morning';
+            if (hour >= 12 && hour < 14) return 'lunch';
+            if (hour >= 14 && hour < 18) return 'post';
+            if (hour >= 18 || hour < 6) return 'evening';
+        }
+
+        // Check if session is available
+        function isSessionAvailable(session) {
+            const currentSession = getCurrentSession();
+            const sessions = ['morning', 'lunch', 'post', 'evening'];
+            const currentIndex = sessions.indexOf(currentSession);
+            const sessionIndex = sessions.indexOf(session);
+            
+            return sessionIndex <= currentIndex;
+        }
+
+        // Format date for display
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        // Show onboarding screen
+        function showOnboardingScreen() {
+            document.getElementById('onboarding-screen').classList.remove('hidden');
+            document.getElementById('attendance-screen').classList.add('hidden');
+        }
+
+        // Show attendance screen
+        function showAttendanceScreen() {
+            document.getElementById('onboarding-screen').classList.add('hidden');
+            document.getElementById('attendance-screen').classList.remove('hidden');
+            
+            // Update user info
+            document.getElementById('display-name').textContent = currentUser.name;
+            document.getElementById('display-id').textContent = currentUser.employeeId;
+            document.getElementById('current-date').textContent = formatDate(getTodayKey());
+            
+            // Update attendance status
+            updateAttendanceStatus();
+            updateHistory();
+        }
+
+        // Update attendance status
+        function updateAttendanceStatus() {
+            const todayKey = getTodayKey();
+            const todayAttendance = attendanceData[todayKey] || {};
+            
+            // Update cards
+            document.querySelectorAll('.attendance-card').forEach(card => {
+                const session = card.dataset.session;
+                const isCheckedIn = todayAttendance[session];
+                const isAvailable = isSessionAvailable(session);
+                
+                card.classList.remove('checked-in', 'disabled');
+                
+                if (isCheckedIn) {
+                    card.classList.add('checked-in');
+                } else if (!isAvailable) {
+                    card.classList.add('disabled');
+                }
+            });
+            
+            // Update status badge
+            const completedCount = Object.keys(todayAttendance).length;
+            const statusContainer = document.getElementById('status-container');
+            
+            if (completedCount === 4) {
+                statusContainer.innerHTML = `
+                    <div class="status-badge status-complete">
+                        ✓ Full Attendance Completed (${completedCount}/4)
+                    </div>
+                `;
+            } else {
+                statusContainer.innerHTML = `
+                    <div class="status-badge status-incomplete">
+                        Check-ins: ${completedCount}/4
+                    </div>
+                `;
+            }
+        }
+
+        // Update history
+        function updateHistory() {
+            const historyContainer = document.getElementById('history-container');
+            const dates = Object.keys(attendanceData).sort().reverse().slice(0, 7);
+            
+            if (dates.length === 0) {
+                historyContainer.innerHTML = '<p style="color: #999; text-align: center;">No attendance history yet</p>';
+                return;
+            }
+            
+            historyContainer.innerHTML = dates.map(date => {
+                const sessions = attendanceData[date];
+                const sessionCount = Object.keys(sessions).length;
+                const isComplete = sessionCount === 4;
+                
+                const sessionNames = {
+                    morning: 'Morning',
+                    lunch: 'Lunch',
+                    post: 'Post-Lunch',
+                    evening: 'Evening'
+                };
+                
+                const checkedSessions = Object.keys(sessions)
+                    .map(s => sessionNames[s])
+                    .join(', ');
+                
+                return `
+                    <div class="history-item">
+                        <div class="history-date">
+                            ${formatDate(date)}
+                            ${isComplete ? '<span class="checkmark">✓</span>' : ''}
+                        </div>
+                        <div class="history-checks">
+                            ${sessionCount}/4 check-ins: ${checkedSessions || 'None'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Handle onboarding form submission
+        document.getElementById('onboarding-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            currentUser = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                employeeId: document.getElementById('employee-id').value
+            };
+            
+            saveUserData();
+            showAttendanceScreen();
+        });
+
+        // Handle attendance check-in
+        document.querySelectorAll('.attendance-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const session = card.dataset.session;
+                const todayKey = getTodayKey();
+                
+                // Check if already checked in
+                if (!attendanceData[todayKey]) {
+                    attendanceData[todayKey] = {};
+                }
+                
+                if (attendanceData[todayKey][session]) {
+                    alert('You have already checked in for this session!');
+                    return;
+                }
+                
+                // Check if session is available
+                if (!isSessionAvailable(session)) {
+                    alert('This session is not available yet!');
+                    return;
+                }
+                
+                // Record check-in
+                attendanceData[todayKey][session] = new Date().toISOString();
+                saveUserData();
+                updateAttendanceStatus();
+                updateHistory();
+                
+                // Show success message
+                const sessionNames = {
+                    morning: 'Morning',
+                    lunch: 'Lunch',
+                    post: 'Post-Lunch',
+                    evening: 'Evening'
+                };
+                
+                alert(`✓ ${sessionNames[session]} check-in recorded!`);
+            });
+        });
+
+        // Handle logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.clear();
+                currentUser = null;
+                attendanceData = {};
+                location.reload();
+            }
+        });
+
+        // Initialize app on load
+        init();
+    </script>
+</body>
+</html>
