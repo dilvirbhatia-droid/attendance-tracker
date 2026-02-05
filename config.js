@@ -6,7 +6,7 @@ const API_CONFIG = {
     development: 'http://localhost:5000',
     
     // Production (replace with your deployed backend URL)
-    production: 'angelic-unity-production-16a5.up.railway.app', // Or Railway, Render, etc.
+    production: 'https://angelic-unity-production-16a5.up.railway.app', // Or Railway, Render, etc.
     
     // Current environment
     current: 'production' // Change to 'production' when deploying
